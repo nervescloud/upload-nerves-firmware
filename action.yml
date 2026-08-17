@@ -18,12 +18,13 @@ inputs:
   token:
     description: Auth token for NervesCloud or your self-hosted NervesHub instance.
     required: true
-  public-key:
-    description: Public Key for signing the firmware.
-    required: true
   private-key:
-    description: Private Key for signing the firmware.
+    description: Unencrypted base64 private key for signing the firmware.
     required: true
+  public-key:
+    description: Deprecated and ignored. Signing only needs the private key.
+    required: false
+    default:
   org:
     description: Organization name which the firmware will be uploaded to.
     required: true
@@ -31,11 +32,13 @@ inputs:
     description: Product name which the firmware will be updated to.
     required: true
   deployment:
-    description: The name of the Deployment which should be updated with the newly uploaded firmware.
+    description: The name of the deployment group which should be updated with the newly uploaded firmware.
     required: false
     default:
   firmware:
-    description: The file path of the firmware file to upload.
+    description: >
+      The file path of the firmware file to upload. Defaults to the image built into
+      _build/<target>_<env>/nerves/images.
     required: false
     default:
   working-directory:
@@ -43,14 +46,18 @@ inputs:
     required: false
     default:
   version:
-    description: Version of the NervesHub CLI to download and install.
+    description: Version of the nh CLI to download and install.
     required: false
     default: latest
 
 outputs:
   cli-version:
-    description: Exact version of the NervesCloud CLI that was installed.
+    description: Exact version of the nh CLI that was installed.
+  firmware-uuid:
+    description: UUID of the uploaded firmware.
+  firmware-version:
+    description: Version of the uploaded firmware.
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js

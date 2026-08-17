@@ -30740,7 +30740,6 @@ var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: external "os"
 const external_os_namespaceObject = require("os");
-var external_os_default = /*#__PURE__*/__nccwpck_require__.n(external_os_namespaceObject);
 ;// CONCATENATED MODULE: ./node_modules/@actions/core/lib/utils.js
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -30763,7 +30762,7 @@ function utils_toCommandValue(input) {
  * @returns The command properties to send with the actual annotation command
  * See IssueCommandProperties: https://github.com/actions/runner/blob/main/src/Runner.Worker/ActionCommandManager.cs#L646
  */
-function utils_toCommandProperties(annotationProperties) {
+function toCommandProperties(annotationProperties) {
     if (!Object.keys(annotationProperties).length) {
         return {};
     }
@@ -32211,7 +32210,7 @@ const IS_WINDOWS = process.platform === 'win32';
  */
 function readlink(fsPath) {
     return io_util_awaiter(this, void 0, void 0, function* () {
-        const result = yield fs.promises.readlink(fsPath);
+        const result = yield external_fs_namespaceObject.promises.readlink(fsPath);
         // On Windows, restore Node 20 behavior: add trailing backslash to all results
         // since junctions on Windows are always directory links
         if (IS_WINDOWS && !result.endsWith('\\')) {
@@ -32387,19 +32386,19 @@ var io_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argum
 function io_cp(source_1, dest_1) {
     return io_awaiter(this, arguments, void 0, function* (source, dest, options = {}) {
         const { force, recursive, copySourceDirectory } = readCopyOptions(options);
-        const destStat = (yield ioUtil.exists(dest)) ? yield ioUtil.stat(dest) : null;
+        const destStat = (yield exists(dest)) ? yield stat(dest) : null;
         // Dest is an existing file, but not forcing
         if (destStat && destStat.isFile() && !force) {
             return;
         }
         // If dest is an existing directory, should copy inside.
         const newDest = destStat && destStat.isDirectory() && copySourceDirectory
-            ? path.join(dest, path.basename(source))
+            ? external_path_namespaceObject.join(dest, external_path_namespaceObject.basename(source))
             : dest;
-        if (!(yield ioUtil.exists(source))) {
+        if (!(yield exists(source))) {
             throw new Error(`no such file or directory: ${source}`);
         }
-        const sourceStat = yield ioUtil.stat(source);
+        const sourceStat = yield stat(source);
         if (sourceStat.isDirectory()) {
             if (!recursive) {
                 throw new Error(`Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`);
@@ -32409,7 +32408,7 @@ function io_cp(source_1, dest_1) {
             }
         }
         else {
-            if (path.relative(source, newDest) === '') {
+            if (external_path_namespaceObject.relative(source, newDest) === '') {
                 // a file cannot be copied to itself
                 throw new Error(`'${newDest}' and '${source}' are the same file`);
             }
@@ -32591,11 +32590,11 @@ function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
             return;
         currentDepth++;
         yield mkdirP(destDir);
-        const files = yield ioUtil.readdir(sourceDir);
+        const files = yield readdir(sourceDir);
         for (const fileName of files) {
             const srcFile = `${sourceDir}/${fileName}`;
             const destFile = `${destDir}/${fileName}`;
-            const srcFileStat = yield ioUtil.lstat(srcFile);
+            const srcFileStat = yield lstat(srcFile);
             if (srcFileStat.isDirectory()) {
                 // Recurse
                 yield cpDirRecursive(srcFile, destFile, currentDepth, force);
@@ -32605,32 +32604,32 @@ function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
             }
         }
         // Change the mode for the newly created directory
-        yield ioUtil.chmod(destDir, (yield ioUtil.stat(sourceDir)).mode);
+        yield chmod(destDir, (yield stat(sourceDir)).mode);
     });
 }
 // Buffered file copy
 function io_copyFile(srcFile, destFile, force) {
     return io_awaiter(this, void 0, void 0, function* () {
-        if ((yield ioUtil.lstat(srcFile)).isSymbolicLink()) {
+        if ((yield lstat(srcFile)).isSymbolicLink()) {
             // unlink/re-link it
             try {
-                yield ioUtil.lstat(destFile);
-                yield ioUtil.unlink(destFile);
+                yield lstat(destFile);
+                yield unlink(destFile);
             }
             catch (e) {
                 // Try to override file permission
                 if (e.code === 'EPERM') {
-                    yield ioUtil.chmod(destFile, '0666');
-                    yield ioUtil.unlink(destFile);
+                    yield chmod(destFile, '0666');
+                    yield unlink(destFile);
                 }
                 // other errors = it doesn't exist, no work to do
             }
             // Copy over symlink
-            const symlinkFull = yield ioUtil.readlink(srcFile);
-            yield ioUtil.symlink(symlinkFull, destFile, ioUtil.IS_WINDOWS ? 'junction' : null);
+            const symlinkFull = yield readlink(srcFile);
+            yield symlink(symlinkFull, destFile, IS_WINDOWS ? 'junction' : null);
         }
-        else if (!(yield ioUtil.exists(destFile)) || force) {
-            yield ioUtil.copyFile(srcFile, destFile);
+        else if (!(yield exists(destFile)) || force) {
+            yield copyFile(srcFile, destFile);
         }
     });
 }
@@ -33448,7 +33447,7 @@ function exportVariable(name, val) {
  * ```
  */
 function core_setSecret(secret) {
-    issueCommand('add-mask', {}, secret);
+    command_issueCommand('add-mask', {}, secret);
 }
 /**
  * Prepends inputPath to the PATH (for this action and future actions)
@@ -33578,7 +33577,7 @@ function core_debug(message) {
  * @param properties optional properties to add to the annotation.
  */
 function error(message, properties = {}) {
-    command_issueCommand('error', utils_toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    command_issueCommand('error', toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 /**
  * Adds a warning issue
@@ -33586,7 +33585,7 @@ function error(message, properties = {}) {
  * @param properties optional properties to add to the annotation.
  */
 function warning(message, properties = {}) {
-    issueCommand('warning', toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    command_issueCommand('warning', toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 /**
  * Adds a notice issue
@@ -33594,7 +33593,7 @@ function warning(message, properties = {}) {
  * @param properties optional properties to add to the annotation.
  */
 function notice(message, properties = {}) {
-    command_issueCommand('notice', utils_toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    command_issueCommand('notice', toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
 /**
  * Writes info to log with console.log.
@@ -34164,7 +34163,7 @@ function extractZipWin(file, dest) {
         // build the powershell command
         const escapedFile = file.replace(/'/g, "''").replace(/"|\n|\r/g, ''); // double-up single quotes, remove double quotes and newlines
         const escapedDest = dest.replace(/'/g, "''").replace(/"|\n|\r/g, '');
-        const pwshPath = yield io.which('pwsh', false);
+        const pwshPath = yield which('pwsh', false);
         //To match the file overwrite behavior on nix systems, we use the overwrite = true flag for ExtractToDirectory
         //and the -Force flag for Expand-Archive as a fallback
         if (pwshPath) {
@@ -34184,8 +34183,8 @@ function extractZipWin(file, dest) {
                 '-Command',
                 pwshCommand
             ];
-            core.debug(`Using pwsh at path: ${pwshPath}`);
-            yield exec(`"${pwshPath}"`, args);
+            core_debug(`Using pwsh at path: ${pwshPath}`);
+            yield exec_exec(`"${pwshPath}"`, args);
         }
         else {
             const powershellCommand = [
@@ -34204,21 +34203,21 @@ function extractZipWin(file, dest) {
                 '-Command',
                 powershellCommand
             ];
-            const powershellPath = yield io.which('powershell', true);
-            core.debug(`Using powershell at path: ${powershellPath}`);
-            yield exec(`"${powershellPath}"`, args);
+            const powershellPath = yield which('powershell', true);
+            core_debug(`Using powershell at path: ${powershellPath}`);
+            yield exec_exec(`"${powershellPath}"`, args);
         }
     });
 }
 function extractZipNix(file, dest) {
     return tool_cache_awaiter(this, void 0, void 0, function* () {
-        const unzipPath = yield io.which('unzip', true);
+        const unzipPath = yield which('unzip', true);
         const args = [file];
-        if (!core.isDebug()) {
+        if (!isDebug()) {
             args.unshift('-q');
         }
         args.unshift('-o'); //overwrite with -o, otherwise a prompt is shown which freezes the run
-        yield exec(`"${unzipPath}"`, args, { cwd: dest });
+        yield exec_exec(`"${unzipPath}"`, args, { cwd: dest });
     });
 }
 /**
@@ -34231,20 +34230,20 @@ function extractZipNix(file, dest) {
  */
 function cacheDir(sourceDir, tool, version, arch) {
     return tool_cache_awaiter(this, void 0, void 0, function* () {
-        version = semver.clean(version) || version;
-        arch = arch || os.arch();
-        core.debug(`Caching tool ${tool} ${version} ${arch}`);
-        core.debug(`source dir: ${sourceDir}`);
-        if (!fs.statSync(sourceDir).isDirectory()) {
+        version = node_modules_semver.clean(version) || version;
+        arch = arch || external_os_namespaceObject.arch();
+        core_debug(`Caching tool ${tool} ${version} ${arch}`);
+        core_debug(`source dir: ${sourceDir}`);
+        if (!external_fs_namespaceObject.statSync(sourceDir).isDirectory()) {
             throw new Error('sourceDir is not a directory');
         }
         // Create the tool dir
         const destPath = yield _createToolPath(tool, version, arch);
         // copy each child item. do not move. move can fail on Windows
         // due to anti-virus software having an open handle on a file.
-        for (const itemName of fs.readdirSync(sourceDir)) {
-            const s = path.join(sourceDir, itemName);
-            yield io.cp(s, destPath, { recursive: true });
+        for (const itemName of external_fs_namespaceObject.readdirSync(sourceDir)) {
+            const s = external_path_namespaceObject.join(sourceDir, itemName);
+            yield io_cp(s, destPath, { recursive: true });
         }
         // write .complete
         _completeToolPath(tool, version, arch);
@@ -34296,7 +34295,7 @@ function find(toolName, versionSpec, arch) {
     if (!versionSpec) {
         throw new Error('versionSpec parameter is required');
     }
-    arch = arch || os.arch();
+    arch = arch || external_os_namespaceObject.arch();
     // attempt to resolve an explicit version
     if (!isExplicitVersion(versionSpec)) {
         const localVersions = findAllVersions(toolName, arch);
@@ -34306,15 +34305,15 @@ function find(toolName, versionSpec, arch) {
     // check for the explicit version in the cache
     let toolPath = '';
     if (versionSpec) {
-        versionSpec = semver.clean(versionSpec) || '';
-        const cachePath = path.join(_getCacheDirectory(), toolName, versionSpec, arch);
-        core.debug(`checking cache: ${cachePath}`);
-        if (fs.existsSync(cachePath) && fs.existsSync(`${cachePath}.complete`)) {
-            core.debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`);
+        versionSpec = node_modules_semver.clean(versionSpec) || '';
+        const cachePath = external_path_namespaceObject.join(_getCacheDirectory(), toolName, versionSpec, arch);
+        core_debug(`checking cache: ${cachePath}`);
+        if (external_fs_namespaceObject.existsSync(cachePath) && external_fs_namespaceObject.existsSync(`${cachePath}.complete`)) {
+            core_debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`);
             toolPath = cachePath;
         }
         else {
-            core.debug('not found');
+            core_debug('not found');
         }
     }
     return toolPath;
@@ -34327,14 +34326,14 @@ function find(toolName, versionSpec, arch) {
  */
 function findAllVersions(toolName, arch) {
     const versions = [];
-    arch = arch || os.arch();
-    const toolPath = path.join(_getCacheDirectory(), toolName);
-    if (fs.existsSync(toolPath)) {
-        const children = fs.readdirSync(toolPath);
+    arch = arch || external_os_namespaceObject.arch();
+    const toolPath = external_path_namespaceObject.join(_getCacheDirectory(), toolName);
+    if (external_fs_namespaceObject.existsSync(toolPath)) {
+        const children = external_fs_namespaceObject.readdirSync(toolPath);
         for (const child of children) {
             if (isExplicitVersion(child)) {
-                const fullPath = path.join(toolPath, child, arch || '');
-                if (fs.existsSync(fullPath) && fs.existsSync(`${fullPath}.complete`)) {
+                const fullPath = external_path_namespaceObject.join(toolPath, child, arch || '');
+                if (external_fs_namespaceObject.existsSync(fullPath) && external_fs_namespaceObject.existsSync(`${fullPath}.complete`)) {
                     versions.push(child);
                 }
             }
@@ -34397,20 +34396,20 @@ function _createExtractFolder(dest) {
 }
 function _createToolPath(tool, version, arch) {
     return tool_cache_awaiter(this, void 0, void 0, function* () {
-        const folderPath = path.join(_getCacheDirectory(), tool, semver.clean(version) || version, arch || '');
-        core.debug(`destination ${folderPath}`);
+        const folderPath = external_path_namespaceObject.join(_getCacheDirectory(), tool, node_modules_semver.clean(version) || version, arch || '');
+        core_debug(`destination ${folderPath}`);
         const markerPath = `${folderPath}.complete`;
-        yield io.rmRF(folderPath);
-        yield io.rmRF(markerPath);
-        yield io.mkdirP(folderPath);
+        yield rmRF(folderPath);
+        yield rmRF(markerPath);
+        yield mkdirP(folderPath);
         return folderPath;
     });
 }
 function _completeToolPath(tool, version, arch) {
-    const folderPath = path.join(_getCacheDirectory(), tool, semver.clean(version) || version, arch || '');
+    const folderPath = external_path_namespaceObject.join(_getCacheDirectory(), tool, node_modules_semver.clean(version) || version, arch || '');
     const markerPath = `${folderPath}.complete`;
-    fs.writeFileSync(markerPath, '');
-    core.debug('finished caching tool');
+    external_fs_namespaceObject.writeFileSync(markerPath, '');
+    core_debug('finished caching tool');
 }
 /**
  * Check if version string is explicit
@@ -34418,10 +34417,10 @@ function _completeToolPath(tool, version, arch) {
  * @param versionSpec      version string to check
  */
 function isExplicitVersion(versionSpec) {
-    const c = semver.clean(versionSpec) || '';
-    core.debug(`isExplicit: ${c}`);
-    const valid = semver.valid(c) != null;
-    core.debug(`explicit? ${valid}`);
+    const c = node_modules_semver.clean(versionSpec) || '';
+    core_debug(`isExplicit: ${c}`);
+    const valid = node_modules_semver.valid(c) != null;
+    core_debug(`explicit? ${valid}`);
     return valid;
 }
 /**
@@ -34432,26 +34431,26 @@ function isExplicitVersion(versionSpec) {
  */
 function evaluateVersions(versions, versionSpec) {
     let version = '';
-    core.debug(`evaluating ${versions.length} versions`);
+    core_debug(`evaluating ${versions.length} versions`);
     versions = versions.sort((a, b) => {
-        if (semver.gt(a, b)) {
+        if (node_modules_semver.gt(a, b)) {
             return 1;
         }
         return -1;
     });
     for (let i = versions.length - 1; i >= 0; i--) {
         const potential = versions[i];
-        const satisfied = semver.satisfies(potential, versionSpec);
+        const satisfied = node_modules_semver.satisfies(potential, versionSpec);
         if (satisfied) {
             version = potential;
             break;
         }
     }
     if (version) {
-        core.debug(`matched: ${version}`);
+        core_debug(`matched: ${version}`);
     }
     else {
-        core.debug('match not found');
+        core_debug('match not found');
     }
     return version;
 }
@@ -34460,7 +34459,7 @@ function evaluateVersions(versions, versionSpec) {
  */
 function _getCacheDirectory() {
     const cacheDirectory = process.env['RUNNER_TOOL_CACHE'] || '';
-    ok(cacheDirectory, 'Expected RUNNER_TOOL_CACHE to be defined');
+    (0,external_assert_.ok)(cacheDirectory, 'Expected RUNNER_TOOL_CACHE to be defined');
     return cacheDirectory;
 }
 /**
@@ -34495,124 +34494,226 @@ function _unique(values) {
 
 
 
+const CLI_REPO = 'nerves-hub/nh'
+const CLI_TOOL_NAME = 'nh'
 
 async function run () {
-  try {
-    setPlatformURI()
+  const version = await installCLI()
+  setOutput('cli-version', version)
 
-    setEnvVars()
+  const env = cliEnv()
+  const workingDirectory = resolveWorkingDirectory()
+  const firmwarePath = resolveFirmwarePath(workingDirectory)
 
-    await installCLI()
+  const firmware = await uploadFirmware(firmwarePath, workingDirectory, env)
+  setOutput('firmware-uuid', firmware.uuid)
+  setOutput('firmware-version', firmware.version)
 
-    await publishFirmware()
-  } catch (error) {
-    setFailed(error.message)
+  const deployment = getInput('deployment', { required: false })
+  if (deployment !== '') {
+    await updateDeployment(deployment, firmware, workingDirectory, env)
+    notice(
+      `Firmware ${firmware.version} (${firmware.uuid}) uploaded and deployed to ${deployment}`
+    )
+  } else {
+    notice(`Firmware ${firmware.version} (${firmware.uuid}) uploaded`)
   }
 }
 
-function setPlatformURI () {
+// The CLI reads its configuration from NERVES_HUB_* environment variables.
+// URI, org, product and token are exported so later steps in the job can run
+// `nh` themselves; the signing key is passed per-command so it never lands in
+// the job environment.
+function cliEnv () {
   const uri = getInput('uri', { required: false })
   if (uri !== '') {
     exportVariable('NERVES_HUB_URI', uri)
     info(`Platform URI set to ${uri}`)
   }
-}
 
-function setEnvVars () {
-  const org = getInput('org', { required: true })
-  exportVariable('NERVES_HUB_ORG', org)
-
-  const product = getInput('product', { required: true })
-  exportVariable('NERVES_HUB_PRODUCT', product)
+  exportVariable('NERVES_HUB_ORG', getInput('org', { required: true }))
+  exportVariable(
+    'NERVES_HUB_PRODUCT',
+    getInput('product', { required: true })
+  )
 
   const token = getInput('token', { required: true })
+  core_setSecret(token)
   exportVariable('NERVES_HUB_TOKEN', token)
 
-  const keysPath = external_path_default().join(external_os_default().homedir(), '.nerves_cloud')
-  external_fs_default().mkdirSync(keysPath, { recursive: true })
+  if (getInput('public-key', { required: false }) !== '') {
+    warning(
+      'The `public-key` input is no longer used and can be removed: signing only needs the private key.'
+    )
+  }
 
-  const publicKey = getInput('public-key', { required: true })
-  const publicKeyPath = external_path_default().join(keysPath, 'signing_key.pub')
-  external_fs_default().writeFileSync(publicKeyPath, publicKey)
-  exportVariable('NERVES_HUB_FW_PUBLIC_KEY_PATH', publicKeyPath)
+  const privateKey = getInput('private-key', { required: true }).trim()
+  core_setSecret(privateKey)
 
-  const privateKey = getInput('private-key', { required: true })
-  const privateKeyPath = external_path_default().join(keysPath, 'signing_key.priv')
-  external_fs_default().writeFileSync(privateKeyPath, privateKey)
-  exportVariable('NERVES_HUB_FW_PRIVATE_KEY_PATH', privateKeyPath)
+  return {
+    ...process.env,
+    NERVES_HUB_PRIVATE_KEY: privateKey,
+    NERVES_HUB_NON_INTERACTIVE: 'true'
+  }
 }
 
 async function installCLI () {
-  const binPath = external_path_default().join(external_os_default().homedir(), '.bin')
-  external_fs_default().mkdirSync(binPath, { recursive: true })
+  const requestedVersion = getInput('version', { required: true })
+  const version = await resolveVersion(requestedVersion)
 
-  const cliVersion = getInput('version', { required: true })
+  let installDir = find(CLI_TOOL_NAME, version)
+  if (installDir === '') {
+    const { os, arch, archive, extension } = releaseAsset(version)
+    const downloadUri = `https://github.com/${CLI_REPO}/releases/download/v${version}/${archive}`
 
-  let cliDownloadUri
-  if (cliVersion === 'latest') {
-    cliDownloadUri =
-      'https://github.com/nerves-hub/nerves_hub_cli/releases/latest/download/linux-x86_64.tar.xz'
-  } else {
-    cliDownloadUri = `https://github.com/nerves-hub/nerves_hub_cli/releases/download/v${cliVersion}/linux-x86_64.tar.xz`
+    info(`Downloading ${CLI_TOOL_NAME} ${version} for ${os}/${arch}`)
+    const pathToArchive = await downloadTool(downloadUri)
+    const extractedDir =
+      extension === 'zip'
+        ? await extractZip(pathToArchive)
+        : await extractTar(pathToArchive)
+
+    installDir = await cacheDir(extractedDir, CLI_TOOL_NAME, version)
   }
 
-  const pathToTarball = await downloadTool(cliDownloadUri)
-  const pathToCLI = await extractTar(pathToTarball, binPath, '-xJ')
+  core_debug(`CLI installed at ${installDir}`)
+  addPath(installDir)
 
-  core_debug(`CLI installed at ${pathToCLI}`)
-  addPath(pathToCLI)
-
+  // `nh --version` prints "nh <version> (<commit>) <date>"; the semver is all
+  // we report, and running it confirms the binary actually works.
   let versionOutput = ''
-  await exec_exec('nh', ['version'], {
+  await exec_exec(CLI_TOOL_NAME, ['--version'], {
     silent: true,
     listeners: {
       stdout: (data) => (versionOutput += data.toString())
     }
   })
 
-  let parsedVersion = ''
-  if (versionOutput.startsWith('v')) {
-    parsedVersion = versionOutput
-  } else {
-    parsedVersion = cliVersion
-  }
-
-  setOutput('cli-version', parsedVersion)
-  info(`Version ${parsedVersion} of the NervesCloud CLI installed`)
+  const reportedVersion = versionOutput.trim().split(/\s+/)[1] || version
+  info(`Version ${reportedVersion} of the NervesCloud CLI installed`)
+  return reportedVersion
 }
 
-async function publishFirmware () {
-  const args = ['firmware', 'publish']
+// `latest` is resolved to a concrete version because the release archives are
+// named after it, so there is no fixed "latest" download URL.
+async function resolveVersion (requestedVersion) {
+  if (requestedVersion !== 'latest') {
+    return requestedVersion.replace(/^v/, '')
+  }
 
-  const firmwarePath = getInput('firmware', { required: false })
-  if (firmwarePath !== '') {
-    const resolvedFirmwarePath = external_path_default().resolve(
-      process.env.GITHUB_WORKSPACE,
-      firmwarePath
+  const headers = { accept: 'application/vnd.github+json' }
+  if (process.env.GITHUB_TOKEN) {
+    headers.authorization = `Bearer ${process.env.GITHUB_TOKEN}`
+  }
+
+  const response = await fetch(
+    `https://api.github.com/repos/${CLI_REPO}/releases/latest`,
+    { headers }
+  )
+  if (!response.ok) {
+    throw new Error(
+      `Could not look up the latest ${CLI_TOOL_NAME} release (HTTP ${response.status}). Pin the \`version\` input to work around this.`
     )
-    args.push(resolvedFirmwarePath)
   }
 
-  const deployment = getInput('deployment', { required: false })
-  if (deployment !== '') {
-    args.push('--deploy', deployment)
+  const { tag_name: tagName } = await response.json()
+  return tagName.replace(/^v/, '')
+}
+
+function releaseAsset (version) {
+  const platforms = { linux: 'linux', darwin: 'darwin', win32: 'windows' }
+  const architectures = { x64: 'amd64', arm64: 'arm64' }
+
+  const os = platforms[process.platform]
+  const arch = architectures[process.arch]
+  if (!os || !arch) {
+    throw new Error(
+      `Unsupported runner platform ${process.platform}/${process.arch}: the ${CLI_TOOL_NAME} CLI ships for linux, darwin and windows on amd64 and arm64.`
+    )
   }
 
+  const extension = os === 'windows' ? 'zip' : 'tar.gz'
+  return {
+    os,
+    arch,
+    extension,
+    archive: `${CLI_TOOL_NAME}_${version}_${os}_${arch}.${extension}`
+  }
+}
+
+function resolveWorkingDirectory () {
   const workingDirectory = getInput('working-directory', {
     required: false
   })
-  const customWorkingDirectory = external_path_default().resolve(
-    process.env.GITHUB_WORKSPACE,
-    workingDirectory
-  )
+  return external_path_default().resolve(process.env.GITHUB_WORKSPACE, workingDirectory)
+}
 
-  await exec_exec('nh', args, { cwd: customWorkingDirectory })
-
-  if (deployment !== '') {
-    notice('Firmware uploaded to deployment successfully')
-  } else {
-    notice('Firmware uploaded successfully')
+// The CLI always takes an explicit firmware path, so when the `firmware` input
+// is omitted fall back to the image Nerves builds into
+// _build/<target>_<env>/nerves/images.
+function resolveFirmwarePath (workingDirectory) {
+  const firmwareInput = getInput('firmware', { required: false })
+  if (firmwareInput !== '') {
+    return external_path_default().resolve(workingDirectory, firmwareInput)
   }
+
+  const buildDir = external_path_default().join(workingDirectory, '_build')
+  const candidates = readDir(buildDir)
+    .flatMap((target) => {
+      const imagesDir = external_path_default().join(buildDir, target, 'nerves', 'images')
+      return readDir(imagesDir)
+        .filter((file) => file.endsWith('.fw'))
+        .map((file) => external_path_default().join(imagesDir, file))
+    })
+
+  if (candidates.length === 0) {
+    throw new Error(
+      `No firmware found under ${buildDir}. Set the \`firmware\` input to the path of the .fw file to upload.`
+    )
+  }
+  if (candidates.length > 1) {
+    throw new Error(
+      `Found more than one firmware file (${candidates.join(', ')}). Set the \`firmware\` input to pick one.`
+    )
+  }
+
+  info(`Found firmware at ${candidates[0]}`)
+  return candidates[0]
+}
+
+function readDir (dir) {
+  try {
+    return external_fs_default().readdirSync(dir)
+  } catch {
+    return []
+  }
+}
+
+async function uploadFirmware (firmwarePath, workingDirectory, env) {
+  const args = ['firmware', 'upload', firmwarePath, '--output', 'json']
+
+  let stdout = ''
+  await exec_exec(CLI_TOOL_NAME, args, {
+    cwd: workingDirectory,
+    env,
+    listeners: {
+      stdout: (data) => (stdout += data.toString())
+    }
+  })
+
+  try {
+    return JSON.parse(stdout)
+  } catch {
+    throw new Error(`Could not read the uploaded firmware details from: ${stdout}`)
+  }
+}
+
+async function updateDeployment (deployment, firmware, workingDirectory, env) {
+  await exec_exec(
+    CLI_TOOL_NAME,
+    ['deployment', 'update', deployment, '--firmware', firmware.uuid],
+    { cwd: workingDirectory, env }
+  )
 }
 
 (async () => {

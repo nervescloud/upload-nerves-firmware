@@ -2,7 +2,12 @@
 
 This action signs and uploads your Nerves firmware to NervesCloud.
 
-You can also deploy your firmware to your Deployment of choice. (optional)
+You can also deploy your firmware to your deployment group of choice. (optional)
+
+It runs the [`nh` CLI](https://github.com/nerves-hub/nh), which it downloads and
+caches on the runner. Signing shells out to
+[`fwup`](https://github.com/fwup-home/fwup), which must already be on the
+runner's `PATH`.
 
 ## Inputs
 
@@ -20,11 +25,7 @@ You can also deploy your firmware to your Deployment of choice. (optional)
 
 ### `private-key`
 
-**Required** The private key to use for signing your firmware.
-
-### `public-key`
-
-**Required** The public key to use for signing your firmware.
+**Required** The unencrypted base64 private key to use for signing your firmware.
 
 ### `uri`
 
@@ -32,11 +33,27 @@ You can also deploy your firmware to your Deployment of choice. (optional)
 
 ### `deployment`
 
-**Optional** The name of the deployment to create a new release in.
+**Optional** The name of the deployment group to update with the newly uploaded firmware.
+
+### `firmware`
+
+**Optional** The path of the `.fw` file to upload, relative to the working
+directory. Defaults to the single image Nerves builds into
+`_build/<target>_<env>/nerves/images`; set it explicitly if your project
+produces more than one.
 
 ### `working-directory`
 
 **Optional** The working directory to use for the firmware deployment. The default is the directory containing your GitHub repo.
+
+### `version`
+
+**Optional** The version of the `nh` CLI to install, e.g. `0.1.0`. Defaults to the latest release.
+
+### `public-key`
+
+**Deprecated** Ignored — signing only needs the private key. Remove it from your
+workflow.
 
 ## Outputs
 
@@ -44,7 +61,9 @@ The action provides the following outputs:
 
 | Output               | Content
 |-                     |-
-| `cli-version`        | The CLI version, e.g. `v3.1.0`
+| `cli-version`        | The CLI version, e.g. `0.1.0`
+| `firmware-uuid`      | The UUID of the uploaded firmware
+| `firmware-version`   | The version of the uploaded firmware
 
 ## Example usage
 
@@ -56,10 +75,9 @@ The action provides the following outputs:
     org: MyOrg
     product: my_product
     private-key: ${{ secrets.NERVES_CLOUD_PRIVATE_KEY }}
-    public-key: ${{ secrets.NERVES_CLOUD_PUBLIC_KEY }}
+    firmware: path/to/firmware/file.fw # optional
     deployment: QA Testing # optional
     uri: https://my.platform.com # optional, default is https://manage.nervescloud.com
     working-directory: subDirForApp # optional
-    firmware: path/to/firmware/file.fw # optional
-    version: 3.0.0 # optional, default is latest released version
+    version: 0.1.0 # optional, default is latest released version
 ```

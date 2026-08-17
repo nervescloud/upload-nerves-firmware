@@ -1,7 +1,10 @@
 {
-  "name": "deploy-firmware-action",
+  "name": "upload-nerves-firmware",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "package": "ncc build -o dist src/upload-firmware.js",
     "lint": "standard src/*.js --fix"
